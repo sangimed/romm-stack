@@ -32,6 +32,8 @@ services:
     depends_on:
       romm-db:
         condition: service_healthy
+      init-romm:
+        condition: service_completed_successfully
     environment:
       DB_HOST: romm-db
       DB_NAME: ${DB_NAME}
@@ -77,3 +79,44 @@ services:
       - "22000:22000/tcp" # Sync
       - "22000:22000/udp" # QUIC
       - "21027:21027/udp" # Discovery LAN
+
+  init-romm:
+    image: alpine:latest
+    container_name: init-romm
+    volumes:
+      - ${ROMM_LIBRARY_PATH}:/romm/library
+      - ./platform_folder_names.txt:/platform_folder_names.txt:ro
+    command: >
+      sh -c "
+      echo 'Initializing RoMM library structure (Structure A)...'
+      
+      # Create root folders
+      mkdir -p /romm/library/roms
+      mkdir -p /romm/library/bios
+
+      if [ -f /platform_folder_names.txt ]; then
+        echo 'Reading platforms from /platform_folder_names.txt...'
+        while IFS= read -r platform || [ -n \"\$platform\" ]; do
+          # Skip empty lines or comments if any
+          if [ -z \"\$platform\" ]; then continue; fi
+          
+          # Create ROMs folder
+          if [ ! -d \"/romm/library/roms/\$platform\" ]; then
+            # echo \"Creating /romm/library/roms/\$platform\"
+            mkdir -p \"/romm/library/roms/\$platform\"
+          fi
+          
+          # Create BIOS folder
+          if [ ! -d \"/romm/library/bios/\$platform\" ]; then
+            # echo \"Creating /romm/library/bios/\$platform\"
+            mkdir -p \"/romm/library/bios/\$platform\"
+          fi
+        done < /platform_folder_names.txt
+        echo 'All platform folders created.'
+      else
+        echo 'Error: platform_folder_names.txt not found!'
+        exit 1
+      fi
+      
+      echo 'Library structure check complete.'
+      "
