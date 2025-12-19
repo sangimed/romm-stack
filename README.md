@@ -1,5 +1,9 @@
 # romm-stack
 
+<p align="center">
+  <img src="logo.png" alt="RoMM Stack logo" width="320" />
+</p>
+
 Docker Compose stack to run RoMM + MariaDB + Syncthing.
 
 ## Requirements
