@@ -86,33 +86,5 @@ services:
     volumes:
       - ${ROMM_LIBRARY_PATH}:/romm/library
       - ./folder_names.csv:/folder_names.csv:ro
-    command: >
-      sh -c "
-      echo 'Initializing RoMM library structure (Structure A)...'
-      
-      # Create root folders
-      mkdir -p /romm/library/roms
-      mkdir -p /romm/library/bios
-
-      if [ -f /folder_names.csv ]; then
-        echo 'Reading platforms from /folder_names.csv...'
-        
-        # Read CSV, skip header, remove carriage returns, and loop
-        # tail -n +2 skips the first line (header)
-        tail -n +2 /folder_names.csv | tr -d '\r' | while IFS= read -r platform || [ -n \"\$$platform\" ]; do
-          # Skip empty lines
-          if [ -z \"\$$platform\" ]; then continue; fi
-          
-          # Create folders
-          mkdir -p \"/romm/library/roms/\$$platform\"
-          mkdir -p \"/romm/library/bios/\$$platform\"
-        done
-        
-        echo 'All platform folders created.'
-      else
-        echo 'Error: folder_names.csv not found!'
-        exit 1
-      fi
-      
-      echo 'Library structure check complete.'
-      "
+      - ./init-romm.sh:/init-romm.sh:ro
+    command: ["sh", "/init-romm.sh"]
