@@ -85,7 +85,7 @@ services:
     container_name: init-romm
     volumes:
       - ${ROMM_LIBRARY_PATH}:/romm/library
-      - ./platform_folder_names.txt:/platform_folder_names.txt:ro
+      - ./folder_names.csv:/folder_names.csv:ro
     command: >
       sh -c "
       echo 'Initializing RoMM library structure (Structure A)...'
@@ -94,25 +94,23 @@ services:
       mkdir -p /romm/library/roms
       mkdir -p /romm/library/bios
 
-      if [ -f /platform_folder_names.txt ]; then
-        echo 'Reading platforms from /platform_folder_names.txt...'
-        while IFS= read -r platform || [ -n "$$platform" ]; do
+      if [ -f /folder_names.csv ]; then
+        echo 'Reading platforms from /folder_names.csv...'
+        
+        # Read CSV, skip header, remove carriage returns, and loop
+        # tail -n +2 skips the first line (header)
+        tail -n +2 /folder_names.csv | tr -d '\r' | while IFS= read -r platform || [ -n \"\$$platform\" ]; do
           # Skip empty lines
-          if [ -z "$$platform" ]; then continue; fi
+          if [ -z \"\$$platform\" ]; then continue; fi
           
-          # Create ROMs folder
-          if [ ! -d "/romm/library/roms/$$platform" ]; then
-            mkdir -p "/romm/library/roms/$$platform"
-          fi
-          
-          # Create BIOS folder
-          if [ ! -d "/romm/library/bios/$$platform" ]; then
-            mkdir -p "/romm/library/bios/$$platform"
-          fi
-        done < /platform_folder_names.txt
+          # Create folders
+          mkdir -p \"/romm/library/roms/\$$platform\"
+          mkdir -p \"/romm/library/bios/\$$platform\"
+        done
+        
         echo 'All platform folders created.'
       else
-        echo 'Error: platform_folder_names.txt not found!'
+        echo 'Error: folder_names.csv not found!'
         exit 1
       fi
       
