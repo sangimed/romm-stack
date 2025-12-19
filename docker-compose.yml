@@ -52,6 +52,7 @@ services:
       HASHEOUS_API_ENABLED: ${HASHEOUS_API_ENABLED:-true}
     volumes:
       - romm_resources:/romm/resources
+      - ${SAVES_SYNC_PATH}:/romm/resources/saves # To sync game saves via Syncthing.
       - romm_redis_data:/redis-data
       - ${ROMM_LIBRARY_PATH}:/romm/library
       - ${ROMM_ASSETS_PATH}:/romm/assets
