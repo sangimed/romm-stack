@@ -1,0 +1,79 @@
+version: "3.8"
+
+volumes:
+  mariadb_data:
+  romm_resources:
+  romm_redis_data:
+  syncthing_config:
+
+services:
+  romm-db:
+    image: mariadb:latest
+    container_name: romm-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASSWD}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  romm:
+    image: rommapp/romm:latest
+    container_name: romm
+    restart: unless-stopped
+    depends_on:
+      romm-db:
+        condition: service_healthy
+    environment:
+      DB_HOST: romm-db
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWD: ${DB_PASSWD}
+
+      ROMM_AUTH_SECRET_KEY: ${ROMM_AUTH_SECRET_KEY}
+
+      # Metadata providers (optionnels, mais recommandés)
+      IGDB_CLIENT_ID: ${IGDB_CLIENT_ID:-}
+      IGDB_CLIENT_SECRET: ${IGDB_CLIENT_SECRET:-}
+      SCREENSCRAPER_USER: ${SCREENSCRAPER_USER:-}
+      SCREENSCRAPER_PASSWORD: ${SCREENSCRAPER_PASSWORD:-}
+      RETROACHIEVEMENTS_API_KEY: ${RETROACHIEVEMENTS_API_KEY:-}
+      STEAMGRIDDB_API_KEY: ${STEAMGRIDDB_API_KEY:-}
+
+      # Optionnel (selon tes usages)
+      HASHEOUS_API_ENABLED: ${HASHEOUS_API_ENABLED:-true}
+    volumes:
+      - romm_resources:/romm/resources
+      - romm_redis_data:/redis-data
+      - ${ROMM_LIBRARY_PATH}:/romm/library
+      - ${ROMM_ASSETS_PATH}:/romm/assets
+      - ${ROMM_CONFIG_PATH}:/romm/config
+    ports:
+      - "${ROMM_PORT:-8080}:8080"
+
+  syncthing:
+    image: syncthing/syncthing:latest
+    container_name: syncthing
+    restart: unless-stopped
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      # Pour éviter que Syncthing te recasse les permissions sur le dossier sync
+      STGUIADDRESS: 0.0.0.0:8384
+    volumes:
+      - syncthing_config:/var/syncthing/config
+      # Dossier "serveur" à synchroniser avec tes devices (PC/SteamDeck/Android/etc.)
+      - ${SAVES_SYNC_PATH}:/data/saves
+    ports:
+      - "8384:8384" # UI Web
+      - "22000:22000/tcp" # Sync
+      - "22000:22000/udp" # QUIC
+      - "21027:21027/udp" # Discovery LAN

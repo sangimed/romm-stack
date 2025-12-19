@@ -1,0 +1,18 @@
+.env
+.env.*
+!.env.example
+
+# Local overrides
+docker-compose.override.yml
+
+
+# Logs / runtime leftovers
+*.log
+nohup.out
+*.pid
+
+# Editor / temp files (common on Linux)
+*~
+*.swp
+*.swo
+.nfs*
