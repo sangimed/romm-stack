@@ -52,6 +52,8 @@ services:
 
       # Optionnel (selon tes usages)
       HASHEOUS_API_ENABLED: ${HASHEOUS_API_ENABLED:-true}
+
+      SCAN_TIMEOUT: ${SCAN_TIMEOUT:-14400} # 	Timeout for the background scan/rescan tasks (in seconds) (default: 4 hours)
     volumes:
       - romm_resources:/romm/resources
       - ${SAVES_SYNC_PATH}:/romm/resources/saves # To sync game saves via Syncthing.
