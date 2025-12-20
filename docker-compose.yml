@@ -64,23 +64,29 @@ services:
     ports:
       - "${ROMM_PORT:-8080}:8080"
 
-  syncthing:
-    image: lscr.io/linuxserver/syncthing:latest
-    container_name: syncthing
-    restart: unless-stopped
-    environment:
-      PUID: ${PUID:-1000}
-      PGID: ${PGID:-1000}
-      TZ: Europe/Paris
-    volumes:
-      - syncthing_config:/config
-      # Dossier "serveur" à synchroniser avec tes devices (PC/SteamDeck/Android/etc.)
-      - ${SAVES_SYNC_PATH}:/data/saves
-    ports:
-      - "8384:8384" # UI Web
-      - "22000:22000/tcp" # Sync
-      - "22000:22000/udp" # QUIC
-      - "21027:21027/udp" # Discovery LAN
+# Too much of a hassle to set up and maintain for now.
+# There is an official RFC:
+#   "Device Registration and Multi-Protocol Save Synchronization"
+# in the works that should make this easier in the future.
+# See:
+#   https://github.com/rommapp/romm/discussions/2199
+  # syncthing:
+  #   image: lscr.io/linuxserver/syncthing:latest
+  #   container_name: syncthing
+  #   restart: unless-stopped
+  #   environment:
+  #     PUID: ${PUID:-1000}
+  #     PGID: ${PGID:-1000}
+  #     TZ: Europe/Paris
+  #   volumes:
+  #     - syncthing_config:/config
+  #     # Dossier "serveur" à synchroniser avec tes devices (PC/SteamDeck/Android/etc.)
+  #     - ${SAVES_SYNC_PATH}:/data/saves
+  #   ports:
+  #     - "8384:8384" # UI Web
+  #     - "22000:22000/tcp" # Sync
+  #     - "22000:22000/udp" # QUIC
+  #     - "21027:21027/udp" # Discovery LAN
 
   init-romm:
     image: alpine:latest
