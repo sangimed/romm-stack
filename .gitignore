@@ -2,6 +2,9 @@
 .env.*
 !.env.example
 
+# User-specific platform list
+folder_names.csv
+
 # Local overrides
 docker-compose.override.yml
 
