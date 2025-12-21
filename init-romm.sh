@@ -38,7 +38,11 @@ total_platforms=0
 created_folders=0
 skipped_folders=0
 
-tail -n +2 "$CSV_FILE" | tr -d '\r' | while IFS= read -r platform || [ -n "$platform" ]; do
+# Create a temporary file for the cleaned CSV content to avoid subshell issues with pipes
+CLEAN_CSV=$(mktemp)
+tail -n +2 "$CSV_FILE" | tr -d '\r' > "$CLEAN_CSV"
+
+while IFS= read -r platform || [ -n "$platform" ]; do
     # Skip empty lines
     if [ -z "$platform" ]; then continue; fi
 
@@ -62,7 +66,10 @@ tail -n +2 "$CSV_FILE" | tr -d '\r' | while IFS= read -r platform || [ -n "$plat
         created_paths="$created_paths $BIOS_ROOT/$platform"
     fi
 
-done
+done < "$CLEAN_CSV"
+
+# Clean up temp file
+rm "$CLEAN_CSV"
 
 echo "------------------------------------------------"
 echo "Initialization Summary:"
