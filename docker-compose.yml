@@ -64,6 +64,37 @@ services:
     ports:
       - "${ROMM_PORT:-8080}:8080"
 
+  vpn:
+    container_name: romm_vpn
+    image: dperson/openvpn-client:latest
+    cap_add:
+      - net_admin # required to modify network interfaces
+    privileged: true
+    restart: unless-stopped
+    volumes:
+      - /dev/net:/dev/net:z # tun device
+      - ${VPN_CONFIG_PATH}:/vpn # OpenVPN configuration
+    security_opt:
+      - label:disable
+    ports:
+      - "${DELUGE_WEB_PORT:-8112}:8112" # port for deluge web UI to be reachable from local network
+    command: '-f "" -r ${VPN_LOCAL_CIDR:-192.168.1.0/24}' # enable firewall and route local network traffic
+
+  deluge:
+    container_name: deluge
+    image: linuxserver/deluge:latest
+    restart: unless-stopped
+    network_mode: service:vpn
+    depends_on:
+      - vpn
+    environment:
+      - PUID=${PUID:-1000} # default user id, defined in .env
+      - PGID=${PGID:-1000} # default group id, defined in .env
+      - TZ=${TZ:-Europe/Paris} # timezone, defined in .env
+    volumes:
+      - ${DELUGE_DOWNLOADS_PATH}:/downloads # downloads folder
+      - ${DELUGE_CONFIG_PATH}:/config # config files
+
 # Too much of a hassle to set up and maintain for now.
 # There is an official RFC:
 #   "Device Registration and Multi-Protocol Save Synchronization"
@@ -99,3 +130,9 @@ services:
       - ./folder_names.csv:/folder_names.csv:ro
       - ./init-romm.sh:/init-romm.sh:ro
     command: ["sh", "/init-romm.sh"]
+
+  cloudflared_romm:
+    container_name: cloudflared_romm
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TOKEN}
+    restart: unless-stopped
