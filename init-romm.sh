@@ -33,41 +33,52 @@ fi
 
 echo "Reading platforms from $CSV_FILE..."
 
-# Use a block to keep variable scope for counters
-tail -n +2 "$CSV_FILE" | tr -d '\r' | {
-    total_platforms=0
-    created_folders=0
-    skipped_folders=0
-    
-    while IFS= read -r platform || [ -n "$platform" ]; do
-        # Skip empty lines
-        if [ -z "$platform" ]; then continue; fi
-        
-        total_platforms=$((total_platforms + 1))
-        
-        # --- ROMs Folder ---
-        if [ -d "$ROM_ROOT/$platform" ]; then
-            skipped_folders=$((skipped_folders + 1))
-        else
-            mkdir -p "$ROM_ROOT/$platform"
-            created_folders=$((created_folders + 1))
-        fi
-        
-        # --- BIOS Folder ---
-        if [ -d "$BIOS_ROOT/$platform" ]; then
-            skipped_folders=$((skipped_folders + 1))
-        else
-            mkdir -p "$BIOS_ROOT/$platform"
-            created_folders=$((created_folders + 1))
-        fi
-    done
-    
-    echo "------------------------------------------------"
-    echo "Initialization Summary:"
-    echo "  Platforms processed : $total_platforms"
-    echo "  Folders created     : $created_folders"
-    echo "  Folders skipped     : $skipped_folders"
-    echo "------------------------------------------------"
-}
+created_paths=""
+total_platforms=0
+created_folders=0
+skipped_folders=0
+
+tail -n +2 "$CSV_FILE" | tr -d '\r' | while IFS= read -r platform || [ -n "$platform" ]; do
+    # Skip empty lines
+    if [ -z "$platform" ]; then continue; fi
+
+    total_platforms=$((total_platforms + 1))
+
+    # --- ROMs Folder ---
+    if [ -d "$ROM_ROOT/$platform" ]; then
+        skipped_folders=$((skipped_folders + 1))
+    else
+        mkdir -p "$ROM_ROOT/$platform"
+        created_folders=$((created_folders + 1))
+        created_paths="$created_paths $ROM_ROOT/$platform"
+    fi
+
+    # --- BIOS Folder ---
+    if [ -d "$BIOS_ROOT/$platform" ]; then
+        skipped_folders=$((skipped_folders + 1))
+    else
+        mkdir -p "$BIOS_ROOT/$platform"
+        created_folders=$((created_folders + 1))
+        created_paths="$created_paths $BIOS_ROOT/$platform"
+    fi
+
+done
+
+echo "------------------------------------------------"
+echo "Initialization Summary:"
+echo "  Platforms processed : $total_platforms"
+echo "  Folders created     : $created_folders"
+echo "  Folders skipped     : $skipped_folders"
+echo "------------------------------------------------"
 
 echo "Library structure check complete."
+
+# Appliquer le bon propriétaire uniquement sur les dossiers nouvellement créés
+if [ -n "$PUID" ] && [ -n "$PGID" ] && [ -n "$created_paths" ]; then
+    echo "Applying ownership: $PUID:$PGID to newly created folders..."
+    chown -R "$PUID:$PGID" $created_paths
+elif [ -z "$created_paths" ]; then
+    echo "No new folders created, skipping chown."
+else
+    echo "Warning: PUID or PGID not set, skipping chown."
+fi
