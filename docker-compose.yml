@@ -81,7 +81,7 @@ services:
     command: '-f "" -r ${VPN_LOCAL_CIDR:-192.168.1.0/24}' # enable firewall and route local network traffic
 
   deluge:
-    container_name: deluge
+    container_name: romm_deluge
     image: linuxserver/deluge:latest
     restart: unless-stopped
     network_mode: service:vpn
