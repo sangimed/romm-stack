@@ -131,6 +131,19 @@ services:
       - ./init-romm.sh:/init-romm.sh:ro
     command: ["sh", "/init-romm.sh"]
 
+  group-multidisc:
+    image: alpine:latest
+    container_name: group-multidisc
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      ROMM_MULTIDISC_PLATFORMS: ${ROMM_MULTIDISC_PLATFORMS:-}
+      ROMM_MULTIDISC_DRY_RUN: ${ROMM_MULTIDISC_DRY_RUN:-true}
+    volumes:
+      - ${ROMM_LIBRARY_PATH}:/romm/library
+      - ./group-multidisc.sh:/group-multidisc.sh:ro
+    command: ["sh", "/group-multidisc.sh", "/romm/library/roms"]
+
   cloudflared_romm:
     container_name: cloudflared_romm
     image: cloudflare/cloudflared:latest
