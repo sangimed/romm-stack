@@ -41,6 +41,14 @@
 ## Persistent data
 - MariaDB: named volume `mariadb_data`
 - RoMM resources + redis: `romm_resources`, `romm_redis_data`
-- Syncthing config: `syncthing_config`
+- ~~Syncthing config: `syncthing_config`~~ ([see details](#about-save-synchronization-syncthing))
 - Library + assets + config + saves: host bind mounts defined in `.env`
+****
+<a id="about-save-synchronization-syncthing"></a>
+## About Save Synchronization (Syncthing)
 
+> **Note:** The Syncthing setup for save synchronization is currently disabled in the `docker-compose.yml` because it is too complex to set up and maintain at this time.
+>
+> An official RFC called "Device Registration and Multi-Protocol Save Synchronization" is in progress and should make this process easier in the future.
+>
+> To follow the progress of this feature, see: https://github.com/rommapp/romm/discussions/2199
