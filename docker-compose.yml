@@ -136,3 +136,6 @@ services:
     image: cloudflare/cloudflared:latest
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TOKEN}
     restart: unless-stopped
+    network_mode: service:vpn
+    depends_on:
+      - vpn
