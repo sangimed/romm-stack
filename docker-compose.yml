@@ -2,7 +2,6 @@ version: "3.8"
 
 volumes:
   mariadb_data:
-  romm_resources:
   romm_redis_data:
   syncthing_config:
 
@@ -55,7 +54,7 @@ services:
 
       SCAN_TIMEOUT: ${SCAN_TIMEOUT:-14400} # 	Timeout for the background scan/rescan tasks (in seconds) (default: 4 hours)
     volumes:
-      - romm_resources:/romm/resources
+      - ${ROMM_RESOURCES_PATH}:/romm/resources
       - ${SAVES_SYNC_PATH}:/romm/resources/saves # To sync game saves via Syncthing.
       - romm_redis_data:/redis-data
       - ${ROMM_LIBRARY_PATH}:/romm/library
